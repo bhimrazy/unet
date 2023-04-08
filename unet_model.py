@@ -11,13 +11,16 @@ Classes:
 """
 
 import torch
-from torch import nn
+import torch.nn as nn
+
+from typing import List
+
 
 class ConvBlock(nn.Module):
     """ A convolutional block in the UNet architecture.
 
-    This block consists of two convolutional layers with batch normalization followed by a ReLU 
-    activation function and a 2x2 max pooling layer.
+    This block consists of two convolutional layers with batch normalization followed by a ReLU activation
+    function and a 2x2 max pooling layer.
 
     Args:
         in_channels (int): The number of input channels.
@@ -68,7 +71,7 @@ class ConvBlock(nn.Module):
         self.relu2 = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=2)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
         """Forward pass of the convolutional block.
 
         Args:
@@ -82,6 +85,41 @@ class ConvBlock(nn.Module):
         x = self.relu1(x)
         x = self.conv2(x)
         x = self.batchnorm2(x)
-        x = self.relu2(x)
-        x = self.maxpool(x)
-        return x
+        f_x = self.relu2(x)
+        x = self.maxpool(f_x)
+        return x, f_x
+
+
+class Encoder(nn.Module):
+    """The encoder part of the UNet architecture.
+
+    This consists of a series of convolutional blocks with decreasing number of channels.
+
+    Args:
+        channels (List[int]): A list of channels for each convolutional block.
+
+    Attributes:
+        encoder_blocks (nn.ModuleList): A list of convolutional blocks.
+
+    """
+
+    def __init__(self, channels: List[int]) -> None:
+        super(Encoder, self).__init__()
+        self.encoder_blocks = nn.ModuleList()
+        for i in range(len(channels)-1):
+            self.encoder_blocks.append(ConvBlock(channels[i], channels[i+1]))
+
+    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """Forward pass of the encoder.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            List[torch.Tensor]: A list of tensors from each encoder block.
+        """
+        encoder_features = []
+        for encoder_block in self.encoder_blocks:
+            x, f_x = encoder_block(x)
+            encoder_features.append(f_x)
+        return encoder_features
