@@ -25,6 +25,7 @@ Attributes:
 """
 import os
 import torch
+import datetime
 
 # Directories
 DATA_DIR = "data"
@@ -37,7 +38,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # Hyperparameters
 BATCH_SIZE = 2
 NUM_WORKERS = 4
-NUM_EPOCHS = 10
+NUM_EPOCHS = 1
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 
@@ -45,17 +46,20 @@ WEIGHT_DECAY = 1e-4
 IMG_SIZE = 256
 
 # Number of classes
-NUM_CLASSES = 2
+NUM_CLASSES = 1
 
 # Model parameters
-CHANNELS = [3, 64, 128, 256, 512]
+CHANNELS = [1, 64, 128, 256, 512, 1024]
 OUT_CHANNELS = 1
 
 # Model name
-MODEL_NAME = "unet"
+now = datetime.datetime.now()
+MODEL_NAME = f"unet_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 # Model path
 MODEL_PATH = os.path.join(MODEL_DIR, f"{MODEL_NAME}.pth")
 
 # Log path
 LOG_PATH = os.path.join(LOG_DIR, f"{MODEL_NAME}.log")
+
+print(MODEL_PATH)
