@@ -1,3 +1,5 @@
+![image](https://user-images.githubusercontent.com/46085301/231232344-a39c2139-8e53-496d-86a0-5c7b04844d5c.png)
+
 # [WIP] PyTorchUNet: An Efficient Implementation of UNet Architecture from Scratch Using PyTorch
 PyTorchUNet is a PyTorch-based implementation of the UNet architecture for semantic image segmentation. 
 This repository contains a comprehensive implementation of the UNet architecture, including both the encoder and decoder modules, using PyTorch 2.0. 
