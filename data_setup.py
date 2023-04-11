@@ -12,7 +12,11 @@ datas = {
 for folder, path in datas.items():
     # Open the volume image
     folder_path = f"data/{folder}"
-    shutil.rmtree(folder_path, ignore_errors=True)
+
+    # Delete the folder if it exists
+    # shutil.rmtree(folder_path, ignore_errors=True)
+    
+    # Create the folder
     os.makedirs(folder_path, exist_ok=True)
 
     with Image.open(path) as volume_img:
