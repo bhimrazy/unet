@@ -31,6 +31,14 @@ python data_setup.py
 
 To train the model, run the following command:
 
+```
+# Update these hyperparameters -> src/config.py
+
+NUM_EPOCHS = 1
+LEARNING_RATE = 1e-3
+
+```
+
 ```shell
 python train.py 
 ```
