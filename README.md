@@ -42,6 +42,9 @@ To test the model, run the following command:
 ```
 This will load the specified checkpoint and test the model on the specified dataset.
 
+## Test Preview
+![image](https://user-images.githubusercontent.com/46085301/231221990-17de0bb8-5aca-4f59-b457-a2771185c16f.png)
+
 ## Contributing
 If you find a bug or have a feature request, please open an issue or submit a pull request. We welcome contributions from the community!
 
