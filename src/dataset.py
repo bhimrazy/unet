@@ -12,14 +12,7 @@ import torchvision.transforms.v2 as T
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
-from src.config import BATCH_SIZE
-
-# get number of workers
-num_workers = os.cpu_count()
-
-
-ROOT_DIR = os.path.abspath("")
-
+from src.config import BATCH_SIZE, NUM_WORKERS, ROOT_DIR
 
 class SegmentationDataset(Dataset):
     """
@@ -75,21 +68,21 @@ masks = sorted(glob.glob(os.path.join(ROOT_DIR, "data/masks/*.jpg")))
 
 # split the dataset
 train_size = int(0.8 * len(images))
-test_size = len(images) - train_size
+val_size = len(images) - train_size
 
 # split the dataset without random
 
-train_images, test_images = images[:train_size], images[train_size:]
-train_masks, test_masks = masks[:train_size], masks[train_size:]
+train_images, val_images = images[:train_size], images[train_size:]
+train_masks, val_masks = masks[:train_size], masks[train_size:]
 
 # create the datasets
 train_dataset = SegmentationDataset(train_images, train_masks, transform=transform)
-test_dataset = SegmentationDataset(test_images, test_masks, transform=transform)
+val_dataset = SegmentationDataset(val_images, val_masks, transform=transform)
 
 # create the dataloaders
 train_dataloader = DataLoader(
-    train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers
+    train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS
 )
-test_dataloader = DataLoader(
-    test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers
+val_dataloader = DataLoader(
+    val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS
 )
