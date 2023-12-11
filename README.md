@@ -43,7 +43,7 @@ This will train the PyTorchUNet model on the specified dataset and save the chec
 
 To test the model, run the following command:
 ```shell
-python test.py -i <path_to_checkpoint> -i <path_to_test_image> -s <path_to_output_image_path> 
+python test.py -c <path_to_checkpoint> -i <path_to_test_image> -s <path_to_output_image_path> 
 
 # -s is optional
 ```
