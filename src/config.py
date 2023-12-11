@@ -4,9 +4,11 @@ Configuration file for the project.
 This file contains all the configuration variables for the project.
 
 Attributes:
+    ARTIFACTS_DIR (str): The path to the artifacts directory.
     DATA_DIR (str): The path to the data directory.
     MODEL_DIR (str): The path to the model directory.
     LOG_DIR (str): The path to the log directory.
+    ROOT_DIR (str): The path to the root directory.
     DEVICE (str): The device to use for training.
     BATCH_SIZE (int): The batch size for training.
     NUM_WORKERS (int): The number of workers for the data loader.
@@ -28,17 +30,26 @@ import torch
 import datetime
 
 # Directories
+ARTIFACTS_DIR = "artifacts"
 DATA_DIR = "data"
 MODEL_DIR = "models"
 LOG_DIR = "logs"
 
+ROOT_DIR = os.path.abspath("")
+
 # Device
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 # Hyperparameters
-BATCH_SIZE = 2
-NUM_WORKERS = 4
-NUM_EPOCHS = 1
+BATCH_SIZE = 8
+NUM_WORKERS = os.cpu_count() - 1  # 4
+NUM_EPOCHS = 10
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 
@@ -49,7 +60,8 @@ IMG_SIZE = 256
 NUM_CLASSES = 1
 
 # Model parameters
-CHANNELS = [1, 64, 128, 256, 512, 1024]
+# CHANNELS = [1, 64, 128, 256, 512, 1024]
+CHANNELS = [1, 64, 128, 256]
 OUT_CHANNELS = 1
 
 # Model name
@@ -57,9 +69,7 @@ now = datetime.datetime.now()
 MODEL_NAME = f"unet_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 # Model path
-MODEL_PATH = os.path.join(MODEL_DIR, f"{MODEL_NAME}.pth")
+MODEL_PATH = os.path.join(ARTIFACTS_DIR, MODEL_DIR, f"{MODEL_NAME}.pth")
 
 # Log path
-LOG_PATH = os.path.join(LOG_DIR, f"{MODEL_NAME}.log")
-
-print(MODEL_PATH)
+LOG_PATH = os.path.join(ARTIFACTS_DIR, LOG_DIR, f"{MODEL_NAME}.log")
