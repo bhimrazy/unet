@@ -19,7 +19,7 @@ from src.config import (
     NUM_EPOCHS,
     OUT_CHANNELS,
 )
-from src.dataset import test_dataloader, train_dataloader
+from src.dataset import train_dataloader, val_dataloader
 from src.model import UNet
 
 torchvision.disable_beta_transforms_warning()
@@ -27,7 +27,9 @@ torchvision.disable_beta_transforms_warning()
 
 model = UNet(channels=CHANNELS, out_channels=OUT_CHANNELS)
 model.to(DEVICE)
-model = torch.compile(model)
+# compile only if device is cuda
+if DEVICE == "cuda":
+    model = torch.compile(model)
 
 
 def unet_loss(outputs, targets, alpha=0.5, beta=1.5):
@@ -86,7 +88,7 @@ def train_step(
     train_loss, train_acc = 0, 0
 
     # Loop through data loader data batches
-    for batch, (X, y) in tqdm(enumerate(dataloader)):
+    for batch, (X, y) in enumerate(dataloader):
         # Send data to target device
         X, y = X.to(DEVICE), y.to(DEVICE)
 
@@ -114,7 +116,7 @@ def train_step(
     return train_loss, train_acc
 
 
-def test_step(
+def val_step(
     model: torch.nn.Module,
     dataloader: torch.utils.data.DataLoader,
     loss_fn: torch.nn.Module,
@@ -132,7 +134,7 @@ def test_step(
 
     Returns:
       A tuple of testing loss and testing accuracy metrics.
-      In the form (test_loss, test_accuracy). For example:
+      In the form (val_loss, val_accuracy). For example:
 
       (0.0223, 0.8985)
     """
@@ -140,7 +142,7 @@ def test_step(
     model.eval()
 
     # Setup test loss and test accuracy values
-    test_loss, test_acc = 0, 0
+    val_loss, val_acc = 0, 0
 
     # Turn on inference context manager
     with torch.inference_mode():
@@ -150,32 +152,32 @@ def test_step(
             X, y = X.to(DEVICE), y.to(DEVICE)
 
             # 1. Forward pass
-            test_pred_logits = model(X)
+            val_pred_logits = model(X)
 
             # 2. Calculate and accumulate loss
-            loss = loss_fn(test_pred_logits, y)
-            test_loss += loss.item()
+            loss = loss_fn(val_pred_logits, y)
+            val_loss += loss.item()
 
             # Calculate and accumulate accuracy
-            test_acc += accuracy(test_pred_logits, y).item()
+            val_acc += accuracy(val_pred_logits, y).item()
 
     # Adjust metrics to get average loss and accuracy per batch
-    test_loss = test_loss / len(dataloader)
-    test_acc = test_acc / len(dataloader)
-    return test_loss, test_acc
+    val_loss = val_loss / len(dataloader)
+    val_acc = val_acc / len(dataloader)
+    return val_loss, val_acc
 
 
 def train(
     model: torch.nn.Module,
     train_dataloader: torch.utils.data.DataLoader,
-    test_dataloader: torch.utils.data.DataLoader,
+    val_dataloader: torch.utils.data.DataLoader,
     optimizer: torch.optim.Optimizer,
     loss_fn: torch.nn.Module,
     epochs: int,
 ) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
-    Passes a target PyTorch models through train_step() and test_step()
+    Passes a target PyTorch models through train_step() and val_step()
     functions for a number of epochs, training and testing the model
     in the same epoch loop.
 
@@ -184,7 +186,7 @@ def train(
     Args:
       model: A PyTorch model to be trained and tested.
       train_dataloader: A DataLoader instance for the model to be trained on.
-      test_dataloader: A DataLoader instance for the model to be tested on.
+      val_dataloader: A DataLoader instance for the model to be tested on.
       optimizer: A PyTorch optimizer to help minimize the loss function.
       loss_fn: A PyTorch loss function to calculate loss on both datasets.
       epochs: An integer indicating how many epochs to train for.
@@ -196,27 +198,27 @@ def train(
       each epoch.
       In the form: {train_loss: [...],
                     train_acc: [...],
-                    test_loss: [...],
-                    test_acc: [...]}
+                    val_loss: [...],
+                    val_acc: [...]}
       For example if training for epochs=2:
                    {train_loss: [2.0616, 1.0537],
                     train_acc: [0.3945, 0.3945],
-                    test_loss: [1.2641, 1.5706],
-                    test_acc: [0.3400, 0.2973]}
+                    val_loss: [1.2641, 1.5706],
+                    val_acc: [0.3400, 0.2973]}
     """
     # Create empty results dictionary
-    results = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
+    results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
 
     # Loop through training and testing steps for a number of epochs
-    for epoch in tqdm(range(epochs)):
+    for epoch in tqdm(range(epochs), desc="Epochs"):
         train_loss, train_acc = train_step(
             model=model,
             dataloader=train_dataloader,
             loss_fn=loss_fn,
             optimizer=optimizer,
         )
-        test_loss, test_acc = test_step(
-            model=model, dataloader=test_dataloader, loss_fn=loss_fn
+        val_loss, val_acc = val_step(
+            model=model, dataloader=val_dataloader, loss_fn=loss_fn
         )
 
         # Print out what's happening
@@ -224,15 +226,15 @@ def train(
             f"Epoch: {epoch+1} | "
             f"train_loss: {train_loss:.4f} | "
             f"train_acc: {train_acc:.4f} | "
-            f"test_loss: {test_loss:.4f} | "
-            f"test_acc: {test_acc:.4f}"
+            f"val_loss: {val_loss:.4f} | "
+            f"val_acc: {val_acc:.4f}"
         )
 
         # Update results dictionary
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_acc)
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_acc)
+        results["val_loss"].append(val_loss)
+        results["val_acc"].append(val_acc)
 
     # Return the filled results at the end of the epochs
     torch.save(model.state_dict(), MODEL_PATH)
@@ -245,7 +247,7 @@ if __name__ == "__main__":
     train(
         model=model,
         train_dataloader=train_dataloader,
-        test_dataloader=test_dataloader,
+        val_dataloader=val_dataloader,
         optimizer=optimizer,
         loss_fn=loss_fn,
         epochs=NUM_EPOCHS,
