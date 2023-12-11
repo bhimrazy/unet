@@ -1,5 +1,4 @@
 import os
-import shutil
 from PIL import Image
 
 # map folder -> path to vol image

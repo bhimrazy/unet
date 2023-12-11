@@ -28,7 +28,7 @@ data/
 ```
 To prepare dataset, run the following command:
 ```shell
-python data_setup.py
+python scripts/data_setup.py
 ```
 
 To train the model, run the following command:
