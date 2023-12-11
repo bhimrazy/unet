@@ -33,7 +33,13 @@ MODEL_DIR = "models"
 LOG_DIR = "logs"
 
 # Device
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 # Hyperparameters
 BATCH_SIZE = 2
@@ -61,3 +67,5 @@ MODEL_PATH = os.path.join(MODEL_DIR, f"{MODEL_NAME}.pth")
 
 # Log path
 LOG_PATH = os.path.join(LOG_DIR, f"{MODEL_NAME}.log")
+
+print("DEVICE", DEVICE)
