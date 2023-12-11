@@ -28,3 +28,5 @@ for folder, path in datas.items():
             # Save the image with a unique filename
             page_img.save(f"data/{folder}/{folder.removesuffix('s')}_{i}.jpg", "JPEG")
             
+
+print("Data setup complete.")
