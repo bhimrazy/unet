@@ -27,9 +27,6 @@ torchvision.disable_beta_transforms_warning()
 
 model = UNet(channels=CHANNELS, out_channels=OUT_CHANNELS)
 model.to(DEVICE)
-# compile only if device is cuda
-if DEVICE == "cuda":
-    model = torch.compile(model)
 
 
 def unet_loss(outputs, targets, alpha=0.5, beta=1.5):
