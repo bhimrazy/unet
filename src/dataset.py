@@ -4,11 +4,14 @@ This module contains the dataset class for the segmentation task.
 
 (c) 2023 Bhimraj Yadav. All rights reserved.
 """
-import os
 import glob
-from PIL import Image
+import os
+
+import torch
 import torchvision.transforms.v2 as T
-from torch.utils.data import Dataset, DataLoader
+from PIL import Image
+from torch.utils.data import DataLoader, Dataset
+
 from src.config import BATCH_SIZE
 
 # get number of workers
@@ -16,6 +19,7 @@ num_workers = os.cpu_count()
 
 
 ROOT_DIR = os.path.abspath("")
+
 
 class SegmentationDataset(Dataset):
     """
@@ -37,7 +41,7 @@ class SegmentationDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        """ Get an item from the dataset.
+        """Get an item from the dataset.
 
         Args:
             idx (int): The index of the item.
@@ -58,9 +62,10 @@ class SegmentationDataset(Dataset):
 
 transform = T.Compose(
     [
-        T.Resize(256),
-        T.ToImageTensor(), 
-        T.ConvertImageDtype()
+        T.ToImage(),
+        T.Resize(256, antialias=True),
+        T.ToDtype(torch.float32, scale=True),
+        T.ToPureTensor(),
     ]
 )
 
@@ -78,13 +83,13 @@ train_images, test_images = images[:train_size], images[train_size:]
 train_masks, test_masks = masks[:train_size], masks[train_size:]
 
 # create the datasets
-train_dataset = SegmentationDataset(
-    train_images, train_masks, transform=transform)
-test_dataset = SegmentationDataset(
-    test_images, test_masks, transform=transform)
+train_dataset = SegmentationDataset(train_images, train_masks, transform=transform)
+test_dataset = SegmentationDataset(test_images, test_masks, transform=transform)
 
 # create the dataloaders
 train_dataloader = DataLoader(
-    train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
+    train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers
+)
 test_dataloader = DataLoader(
-    test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
+    test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers
+)
