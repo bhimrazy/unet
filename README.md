@@ -33,7 +33,7 @@ python scripts/data_setup.py
 
 To train the model, run the following command:
 
-> ###### Update these hyperparameters -> src/config.py : NUM_EPOCHS = 1 & LEARNING_RATE = 1e-3 
+> ###### Update these hyperparameters -> src/config.py : NUM_EPOCHS, LEARNING_RATE, etc.
 
 
 ```shell
@@ -43,9 +43,11 @@ This will train the PyTorchUNet model on the specified dataset and save the chec
 
 To test the model, run the following command:
 ```shell
-# python test.py 
+python test.py -i <path_to_checkpoint> -i <path_to_test_image> -s <path_to_output_image_path> 
+
+# -s is optional
 ```
-This will load the specified checkpoint and test the model on the specified dataset.
+This will load the specified checkpoint and test the model on the specified test image. The output image will be saved at the specified path.
 
 ## Test Preview
 ![image](https://user-images.githubusercontent.com/46085301/231221990-17de0bb8-5aca-4f59-b457-a2771185c16f.png)
@@ -60,4 +62,4 @@ This implementation is based on the original UNet paper by Ronneberger et al. [1
 [1] Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-Net: Convolutional Networks for Biomedical Image Segmentation." International Conference on Medical Image Computing and Computer-Assisted Intervention. Springer, Cham, 2015.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
