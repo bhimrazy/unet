@@ -61,5 +61,3 @@ MODEL_PATH = os.path.join(MODEL_DIR, f"{MODEL_NAME}.pth")
 
 # Log path
 LOG_PATH = os.path.join(LOG_DIR, f"{MODEL_NAME}.log")
-
-print(MODEL_PATH)
