@@ -235,6 +235,7 @@ def train(
 
     # Return the filled results at the end of the epochs
     torch.save(model.state_dict(), MODEL_PATH)
+    print(f"Saved model to {MODEL_PATH}")
     return results
 
 
