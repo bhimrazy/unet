@@ -4,15 +4,23 @@ This module contains the training code for the segmentation task.
 
 (c) 2023 Bhimraj Yadav. All rights reserved.
 """
-from src.dataset import train_dataloader, test_dataloader
-from src.model import UNet
-from tqdm.auto import tqdm
-from datetime import datetime
 from typing import Dict, List, Tuple
 
 import torch
+import torch.nn.functional as F
 import torchvision
-from src.config import DEVICE, LEARNING_RATE, NUM_EPOCHS, MODEL_PATH, CHANNELS, OUT_CHANNELS
+from tqdm.auto import tqdm
+
+from src.config import (
+    CHANNELS,
+    DEVICE,
+    LEARNING_RATE,
+    MODEL_PATH,
+    NUM_EPOCHS,
+    OUT_CHANNELS,
+)
+from src.dataset import test_dataloader, train_dataloader
+from src.model import UNet
 
 torchvision.disable_beta_transforms_warning()
 
@@ -29,7 +37,8 @@ def unet_loss(outputs, targets, alpha=0.5, beta=1.5):
     """
     weights = alpha * targets + beta * (1 - targets)
     loss = F.binary_cross_entropy_with_logits(
-        outputs, targets, weights, reduction='none')
+        outputs, targets, weights, reduction="none"
+    )
     intersection = torch.sum(outputs * targets * weights)
     union = torch.sum(outputs * weights) + torch.sum(targets * weights)
     loss += 1 - 2 * (intersection + 1) / (union + 1)
@@ -45,10 +54,12 @@ def accuracy(outputs, targets):
     return torch.mean((outputs == targets).float())
 
 
-def train_step(model: torch.nn.Module,
-               dataloader: torch.utils.data.DataLoader,
-               loss_fn: torch.nn.Module,
-               optimizer: torch.optim.Optimizer) -> Tuple[float, float]:
+def train_step(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    loss_fn: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+) -> Tuple[float, float]:
     """Trains a PyTorch model for a single epoch.
 
     Turns a target PyTorch model to training mode and then
@@ -103,9 +114,11 @@ def train_step(model: torch.nn.Module,
     return train_loss, train_acc
 
 
-def test_step(model: torch.nn.Module,
-              dataloader: torch.utils.data.DataLoader,
-              loss_fn: torch.nn.Module) -> Tuple[float, float]:
+def test_step(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    loss_fn: torch.nn.Module,
+) -> Tuple[float, float]:
     """Tests a PyTorch model for a single epoch.
 
     Turns a target PyTorch model to "eval" mode and then performs
@@ -152,12 +165,14 @@ def test_step(model: torch.nn.Module,
     return test_loss, test_acc
 
 
-def train(model: torch.nn.Module,
-          train_dataloader: torch.utils.data.DataLoader,
-          test_dataloader: torch.utils.data.DataLoader,
-          optimizer: torch.optim.Optimizer,
-          loss_fn: torch.nn.Module,
-          epochs: int) -> Dict[str, List]:
+def train(
+    model: torch.nn.Module,
+    train_dataloader: torch.utils.data.DataLoader,
+    test_dataloader: torch.utils.data.DataLoader,
+    optimizer: torch.optim.Optimizer,
+    loss_fn: torch.nn.Module,
+    epochs: int,
+) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
     Passes a target PyTorch models through train_step() and test_step()
@@ -177,34 +192,32 @@ def train(model: torch.nn.Module,
 
     Returns:
       A dictionary of training and testing loss as well as training and
-      testing accuracy metrics. Each metric has a value in a list for 
+      testing accuracy metrics. Each metric has a value in a list for
       each epoch.
       In the form: {train_loss: [...],
                     train_acc: [...],
                     test_loss: [...],
-                    test_acc: [...]} 
-      For example if training for epochs=2: 
+                    test_acc: [...]}
+      For example if training for epochs=2:
                    {train_loss: [2.0616, 1.0537],
                     train_acc: [0.3945, 0.3945],
                     test_loss: [1.2641, 1.5706],
-                    test_acc: [0.3400, 0.2973]} 
+                    test_acc: [0.3400, 0.2973]}
     """
     # Create empty results dictionary
-    results = {"train_loss": [],
-               "train_acc": [],
-               "test_loss": [],
-               "test_acc": []
-               }
+    results = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
 
     # Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
-        train_loss, train_acc = train_step(model=model,
-                                           dataloader=train_dataloader,
-                                           loss_fn=loss_fn,
-                                           optimizer=optimizer)
-        test_loss, test_acc = test_step(model=model,
-                                        dataloader=test_dataloader,
-                                        loss_fn=loss_fn)
+        train_loss, train_acc = train_step(
+            model=model,
+            dataloader=train_dataloader,
+            loss_fn=loss_fn,
+            optimizer=optimizer,
+        )
+        test_loss, test_acc = test_step(
+            model=model, dataloader=test_dataloader, loss_fn=loss_fn
+        )
 
         # Print out what's happening
         print(
@@ -228,7 +241,12 @@ def train(model: torch.nn.Module,
 
 if __name__ == "__main__":
     loss_fn = torch.nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.Adam(model.parameters(),
-                                 lr=LEARNING_RATE)
-    train(model=model, train_dataloader=train_dataloader, test_dataloader=test_dataloader,
-          optimizer=optimizer, loss_fn=loss_fn, epochs=NUM_EPOCHS)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    train(
+        model=model,
+        train_dataloader=train_dataloader,
+        test_dataloader=test_dataloader,
+        optimizer=optimizer,
+        loss_fn=loss_fn,
+        epochs=NUM_EPOCHS,
+    )
